@@ -1,0 +1,18 @@
+{% apply inky_to_html|inline_css(source('@styles/foundation-emails.min.css')) %}
+    <container>
+        <row class="header">
+            <columns>
+                <spacer size="16"></spacer>
+                <h1 class="text-center">Hola {{ first_name }}, activa tu cuenta para empezar a utilizar  a {{ app_name }}.</h1>
+            </columns>
+        </row>
+        <row>
+            <columns>
+                <h3>Haga clic en el siguiente botón para activar su cuenta.</h3>
+                <center>
+                    <button class="text-center" href="{{ absolute_url(path('users_activate', {code: code})) }}">Acivar Cuenta</button>
+                </center>
+            </columns>
+        </row>
+    </container>
+{% endapply %}

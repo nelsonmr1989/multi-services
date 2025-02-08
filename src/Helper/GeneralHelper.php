@@ -17,4 +17,8 @@ class GeneralHelper
         }
         return $r;
     }
+
+    public static function getRequiredText($fielname) {
+        return $fielname . ' requerido';
+    }
 }

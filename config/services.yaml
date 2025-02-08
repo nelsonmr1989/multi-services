@@ -4,6 +4,11 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    authorize_login_id: '%env(AUTHORIZE_NET_API_LOGIN_ID)%'
+    authorize_transaction_key: '%env(AUTHORIZE_NET_TRANSACTION_KEY)%'
+    authorize_mode: '%env(AUTHORIZE_NET_MODE)%'
+    app_name: 'Multi-Services'
+    web_url: '%env(WEB_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -22,3 +27,13 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Listener\Exception\HandlerExceptionListener:
+        arguments:
+            - '@service_container'
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }
+
+    App\Listener\Doctrine\DoctrineListener:
+        tags:
+            - { name: 'doctrine.event_listener', event: 'onFlush' }

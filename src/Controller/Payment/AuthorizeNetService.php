@@ -1,44 +1,64 @@
 <?php
+
 namespace App\Controller\Payment;
 
+use App\Controller\BaseService;
+use App\Controller\Payment\Validations\CreateCustomerPaymentProfileValidation;
+use App\Controller\Payment\Validations\CreateCustomerProfileValidation;
+use App\Exception\PaymentFailed;
 use App\Helper\GeneralHelper;
-use http\Exception;
+use App\Service\CollectionService;
+use Doctrine\ORM\EntityManagerInterface;
+use net\authorize\api\constants\ANetEnvironment;
 use net\authorize\api\contract\v1 as AnetAPI;
-use net\authorize\api\controller as AnetController;
-use \net\authorize\api\constants\ANetEnvironment;
 use net\authorize\api\contract\v1\MerchantAuthenticationType;
+use net\authorize\api\controller as AnetController;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /*
  * TODO
- * 0- Create repo
- * 1- Create handler of exception
- * 2- Create customs exception when payment failed, send email or kind of notification when that happened
  * 3- Create validations
  * 3- Try to resolver the most TODO task
  * 4- Create endpoint to process orders
- * 5- Create endpoint to savepayment profile to re-use if and create custom profile if do niot exist
+ * 5- Create endpoint to savepayment profile to re-use if exist and create custom profile if do not exist
  * 6- Create endpoint to remove payment profile
  * 7- Create endpoint to update payment profile
  * 8- Create DB with Daymer (Users, Orders, Products by orders)
  * */
 
 
-class AuthorizeNetService
+class AuthorizeNetService extends BaseService
 {
     private $apiLoginId;
     private $transactionKey;
     private $environment;
+    private ParameterBagInterface $parameterBag;
 
-    public function __construct(string $apiLoginId, string $transactionKey, string $mode)
+    public function __construct(
+        EntityManagerInterface $em,
+        ValidatorInterface $validator,
+        Security $security,
+        CollectionService $collectionService,
+        ParameterBagInterface $parameterBag
+    )
     {
-        $this->apiLoginId = $apiLoginId;
-        $this->transactionKey = $transactionKey;
-        $this->environment = $mode === 'sandbox'
+        parent::__construct($em, $security, $validator, $collectionService);
+        $this->parameterBag = $parameterBag;
+    }
+
+    private function setCredentials(): void {
+        $this->apiLoginId = $this->parameterBag->get('authorize_login_id');
+        $this->transactionKey = $this->parameterBag->get('authorize_transaction_key');
+        $this->environment = $this->parameterBag->get('authorize_mode') === 'sandbox'
             ? ANetEnvironment::SANDBOX
             : ANetEnvironment::PRODUCTION;
     }
 
-    private function merchantAuthentication(?MerchantAuthenticationType &$merchantAuth) {
+    public function merchantAuthentication(?MerchantAuthenticationType &$merchantAuth)
+    {
+        $this->setCredentials();
         if (!$merchantAuth instanceof MerchantAuthenticationType) {
             $merchantAuth = new AnetAPI\MerchantAuthenticationType();
             $merchantAuth->setName($this->apiLoginId);
@@ -46,9 +66,27 @@ class AuthorizeNetService
         }
     }
 
-    private function apiHandlerResponse($response): void {
-        if (empty($response) ||  $response->getMessages()->getResultCode() !== "Ok") {
-            // TODO throw exception
+    private function apiHandlerResponse($response): void
+    {
+        if (empty($response) || $response->getMessages()->getResultCode() !== "Ok") {
+
+            $details = [];
+            if ($response != null && method_exists($response, 'getErrors') && $response->getErrors() != null) {
+                $details = [
+                    'code' => $response->getErrors()[0]->getErrorCode(),
+                    'errorDescription' => $response->getErrors()[0]->getErrorText()
+                ];
+            } else if ($response != null && method_exists($response, 'getMessages') && $response->getMessages() != null) {
+
+                $details = [
+                    'code' => $response->getMessages()->getMessage()[0]->getCode(),
+                    'errorDescription' => $response->getMessages()->getMessage()[0]->getText()
+                ];
+            }
+            throw new PaymentFailed(
+                'Payment failed',
+                $details
+            );
         }
     }
 
@@ -93,7 +131,7 @@ class AuthorizeNetService
             }
         } catch (\Exception $ex) {
             if (!empty($customerData['payment'])) {
-                $paymentData =  $customerData['payment'];
+                $paymentData = $customerData['payment'];
 
                 $customerAddress = new AnetAPI\CustomerAddressType();
                 $customerAddress->setFirstName($paymentData['billTo']['firstName']);
@@ -146,10 +184,17 @@ class AuthorizeNetService
         ];
     }
 
-    public function getCustomerProfile(?MerchantAuthenticationType $merchantAuth, $customerProfileId) {
+    public function getCustomerProfile(?MerchantAuthenticationType $merchantAuth, string|null $customerProfileId)
+    {
 
         // Merchant authentication
         $this->merchantAuthentication($merchantAuth);
+
+        if (empty($customerProfileId)) {
+            // TODO
+            // get from the user logger
+            // if is empty the customer profile for the user logger, return not found exception
+        }
 
         $request = new AnetAPI\GetCustomerProfileRequest();
         $request->setMerchantAuthentication($merchantAuth);
@@ -167,10 +212,16 @@ class AuthorizeNetService
 
     public function createCustomerProfile(?MerchantAuthenticationType $merchantAuth, array $customerData): ?string
     {
-        // Merchant authentication
+
+        // TODO check if the user logger has defined customer profile
+        // if is true return that id
+        // else execute this function
+
         $this->merchantAuthentication($merchantAuth);
 
         $refId = 'ref' . time();
+
+        $this->_validate(new CreateCustomerProfileValidation(), $customerData);
 
         // Customer profile
         $customerProfile = new AnetAPI\CustomerProfileType();
@@ -188,27 +239,53 @@ class AuthorizeNetService
         $response = $controller->executeWithApiResponse($this->environment);
 
         $this->apiHandlerResponse($response);
+
+        // TODO update user logger with this customer profile
+
         return $response->getCustomerProfileId();
     }
 
-    public function deleteCustomerProfile(?MerchantAuthenticationType $merchantAuth, $customerProfileId): bool {
+    public function deleteCustomerProfile(?MerchantAuthenticationType $merchantAuth, $customerProfileId): bool
+    {
         // Merchant authentication
         $this->merchantAuthentication($merchantAuth);
 
         $request = new AnetAPI\DeleteCustomerProfileRequest();
         $request->setMerchantAuthentication($merchantAuth);
-        $request->setCustomerProfileId( $customerProfileId );
+        $request->setCustomerProfileId($customerProfileId);
 
         $controller = new AnetController\DeleteCustomerProfileController($request);
-        $response = $controller->executeWithApiResponse( $this->environment);
+        $response = $controller->executeWithApiResponse($this->environment);
 
         $this->apiHandlerResponse($response);
         return true;
     }
 
-    public function createCustomerPaymentProfile(?MerchantAuthenticationType $merchantAuth, $customerProfileId, array $paymentData): ?string {
+    public function getCustomerPaymentProfile(?MerchantAuthenticationType $merchantAuth, $customerProfileId, $customerPaymentProfileId): array {
 
         // Merchant authentication
+        $this->merchantAuthentication($merchantAuth);
+
+        $refId = 'ref' . time();
+
+        $request = new AnetAPI\GetCustomerPaymentProfileRequest();
+        $request->setMerchantAuthentication($merchantAuth);
+        $request->setRefId( $refId);
+        $request->setCustomerProfileId($customerProfileId);
+        $request->setCustomerPaymentProfileId($customerPaymentProfileId);
+
+        $controller = new AnetController\GetCustomerPaymentProfileController($request);
+        $response = $controller->executeWithApiResponse( $this->environment);
+
+        $this->apiHandlerResponse($response);
+
+        return $response->getPaymentProfile()->jsonSerialize();
+    }
+
+    public function createCustomerPaymentProfile(?MerchantAuthenticationType $merchantAuth, $customerProfileId, array $paymentData): ?string
+    {
+        $this->_validate(new CreateCustomerPaymentProfileValidation(), $paymentData);
+
         $this->merchantAuthentication($merchantAuth);
 
         // Set credit card information for payment profile
@@ -227,7 +304,7 @@ class AuthorizeNetService
         $billto->setCity($paymentData['billTo']['city']);
         $billto->setState($paymentData['billTo']['state']);
         $billto->setZip($paymentData['billTo']['zip']);
-        $billto->setCountry($paymentData['billTo']['country']);
+        $billto->setCountry($paymentData['billTo']['country']); // the ISO 3166 alpha-2 code for the country.
         $billto->setPhoneNumber($paymentData['billTo']['phoneNumber']);
 
         // Create a new Customer Payment Profile object
@@ -254,7 +331,8 @@ class AuthorizeNetService
         return $response->getCustomerPaymentProfileId();
     }
 
-    public function updateCustomerPaymentProfile(?MerchantAuthenticationType $merchantAuth, $customerProfileId, $customerPaymentProfileId, array $paymentData): bool {
+    public function updateCustomerPaymentProfile(?MerchantAuthenticationType $merchantAuth, $customerProfileId, $customerPaymentProfileId, array $paymentData): bool
+    {
         // Merchant authentication
         $this->merchantAuthentication($merchantAuth);
 
@@ -262,7 +340,7 @@ class AuthorizeNetService
 
         $request = new AnetAPI\GetCustomerPaymentProfileRequest();
         $request->setMerchantAuthentication($merchantAuth);
-        $request->setRefId( $refId);
+        $request->setRefId($refId);
         $request->setCustomerProfileId($customerProfileId);
         $request->setCustomerPaymentProfileId($customerPaymentProfileId);
 
@@ -272,7 +350,7 @@ class AuthorizeNetService
         $this->apiHandlerResponse($response);
 
         $creditCard = new AnetAPI\CreditCardType();
-        $creditCard->setCardNumber( $paymentData['cardNumber']);
+        $creditCard->setCardNumber($paymentData['cardNumber']);
         $creditCard->setExpirationDate($paymentData["expirationDate"]);
 
         $paymentCreditCard = new AnetAPI\PaymentType();
@@ -304,14 +382,15 @@ class AuthorizeNetService
         $request->setPaymentProfile($paymentProfile);
 
         $controller = new AnetController\UpdateCustomerPaymentProfileController($request);
-        $response = $controller->executeWithApiResponse( $this->environment);
+        $response = $controller->executeWithApiResponse($this->environment);
 
         $this->apiHandlerResponse($response);
 
         return true;
     }
 
-    public function deleteCustomerPaymentProfile(?MerchantAuthenticationType $merchantAuth, $customerProfileId, $customerPaymentProfileId): bool {
+    public function deleteCustomerPaymentProfile(?MerchantAuthenticationType $merchantAuth, $customerProfileId, $customerPaymentProfileId): bool
+    {
         // Merchant authentication
         $this->merchantAuthentication($merchantAuth);
 
@@ -320,7 +399,7 @@ class AuthorizeNetService
         $request->setCustomerProfileId($customerProfileId);
         $request->setCustomerPaymentProfileId($customerPaymentProfileId);
         $controller = new AnetController\DeleteCustomerPaymentProfileController($request);
-        $response = $controller->executeWithApiResponse( $this->environment);
+        $response = $controller->executeWithApiResponse($this->environment);
 
         $this->apiHandlerResponse($response);
 
