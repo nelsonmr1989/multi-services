@@ -51,6 +51,10 @@ abstract class Base
         return $this;
     }
 
+    public function isDelete(): bool {
+        return !is_null($this->_deleted);
+    }
+
     public function getStringFromDate(\DateTimeInterface $date = null, $isDateTime = true, $format = null)
     {
         $format = ((!empty($format)) ? $format : $isDateTime) ?

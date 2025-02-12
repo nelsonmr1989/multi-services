@@ -53,12 +53,22 @@ class User extends Base implements UserInterface, LegacyPasswordAuthenticatedUse
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $phoneNumber = null;
 
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $customerProfileId = null;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserCode::class, orphanRemoval: true)]
     private Collection $codes;
+
+    /**
+     * @var Collection<int, Recipient>
+     */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Recipient::class, orphanRemoval: true)]
+    private Collection $recipients;
 
     public function __construct()
     {
         $this->codes = new ArrayCollection();
+        $this->recipients = new ArrayCollection();
     }
 
     public function getId(): ?string
@@ -240,5 +250,56 @@ class User extends Base implements UserInterface, LegacyPasswordAuthenticatedUse
     public function isOwner(User $user): bool
     {
         return $user->getRole() === User::ROLE_ADMIN || $this->getId() === $user->getId();
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getCustomerProfileId(): ?string
+    {
+        return $this->customerProfileId;
+    }
+
+    /**
+     * @param string|null $customerProfileId
+     */
+    public function setCustomerProfileId(?string $customerProfileId): void
+    {
+        $this->customerProfileId = $customerProfileId;
+    }
+
+    /**
+     * @return Collection<int, Recipient>
+     */
+    public function getRecipients($excludeDelete = true): Collection
+    {
+        if ($excludeDelete && $this->recipients) {
+            return $this->recipients->filter(function (Recipient $p) {
+                return !$p->isDelete();
+            });
+        }
+        return $this->recipients;
+    }
+
+    public function addRecipient(Recipient $recipient): static
+    {
+        if (!$this->recipients->contains($recipient)) {
+            $this->recipients->add($recipient);
+            $recipient->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRecipient(Recipient $recipient): static
+    {
+        if ($this->recipients->removeElement($recipient)) {
+            // set the owning side to null (unless already changed)
+            if ($recipient->getUser() === $this) {
+                $recipient->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }

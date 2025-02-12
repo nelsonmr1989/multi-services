@@ -13,7 +13,6 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class PaymentService
 {
-
     private AuthorizeNetService $authorizeNetService;
 
     public function __construct(AuthorizeNetService $authorizeNetService)
@@ -21,16 +20,12 @@ class PaymentService
         $this->authorizeNetService = $authorizeNetService;
     }
 
-
-
     public function createCustomerPaymentProfile(array $data): array {
         $merchantAuth = null;
 
         $this->authorizeNetService->merchantAuthentication($merchantAuth);
 
-        // TODO uncomment this code when logging is implemented
-        // $customerProfileId = $this->authorizeNetService->createCustomerProfile($merchantAuth, $data);
-        $customerProfileId = "522258588";
+        $customerProfileId = $this->authorizeNetService->createCustomerProfile($merchantAuth, $data);
         $customerPaymentProfileId = $this->authorizeNetService->createCustomerPaymentProfile($merchantAuth, $customerProfileId, $data['payment']);
 
         return $this->authorizeNetService->getCustomerPaymentProfile($merchantAuth, $customerProfileId, $customerPaymentProfileId);

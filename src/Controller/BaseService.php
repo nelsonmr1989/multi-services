@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 
+use App\Entity\Base;
 use App\Entity\User;
 use App\Exception\Forbidden;
 use App\Exception\NotFound;
@@ -59,7 +60,7 @@ class BaseService
         return $r;
     }
 
-    protected function _getObject($id, $entity, $ignoreRole = false, $ignoreException = false): ?User
+    protected function _getObject($id, $entity, $ignoreRole = false, $ignoreException = false)
     {
         try {
             if ($obj = $this->em->getRepository($entity)->findOneBy(['id' => $id])) {
@@ -69,7 +70,9 @@ class BaseService
                         throw new Forbidden('You do not have access to this resource', 403);
                     }
                 }
-                return $obj;
+                if (!$obj instanceof Base or ($obj instanceof Base && !$obj->isDelete())) {
+                    return $obj;
+                }
             }
 
             throw new NotFound('Not found any object with id: ' . $id, 404);

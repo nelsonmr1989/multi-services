@@ -40,6 +40,7 @@ class HandlerExceptionListener
             case $exception instanceof PaymentFailed:
                 $httpCode = 400;
                 $httpMessage = "Payment Failed";
+                $content = $exception->getMessage();
                 $details = $exception->getErrorDetails();
                 break;
             case $exception instanceof NotFound:

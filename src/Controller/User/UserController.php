@@ -34,8 +34,6 @@ class UserController extends BaseController
     public function activate($code, UserService $userService, ParameterBagInterface $parameterBag)
     {
         $isActive = $userService->activate($code);
-        //TODO: Implement UI in WebApp to introduce the Code
-        // return parent::_response($r);
 
         $url = $parameterBag->get('web_url') . 'auth/login?msg=';
         if ($isActive)
@@ -59,7 +57,6 @@ class UserController extends BaseController
             return new JsonResponse([
                 'message' => 'Access denied.'
             ], 403);
-        // $r = $userService->delete($id);
         return parent::_response($userService->delete($id));
     }
 }

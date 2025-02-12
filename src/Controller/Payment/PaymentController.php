@@ -22,4 +22,10 @@ class PaymentController extends AbstractController {
         $customerProfile = $authorizeNetService->getCustomerProfile(null, null);
         return new JsonResponse($customerProfile, 200);
     }
+
+    #[Route("/payment/customer-payment-profile/{customerPaymentProfileId}", methods: ["DELETE"])]
+    public function deleteCustomerProfile(AuthorizeNetService $authorizeNetService, $customerPaymentProfileId) {
+       $authorizeNetService->deleteCustomerPaymentProfile(null, null, $customerPaymentProfileId);
+        return new JsonResponse(true, 200);
+    }
 }

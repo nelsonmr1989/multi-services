@@ -5,7 +5,12 @@ namespace App\Controller\Payment;
 use App\Controller\BaseService;
 use App\Controller\Payment\Validations\CreateCustomerPaymentProfileValidation;
 use App\Controller\Payment\Validations\CreateCustomerProfileValidation;
+use App\Controller\Payment\Validations\CustomerPaymentProfileBillToValidation;
+use App\Controller\Payment\Validations\UpdateCustomerPaymentProfileValidation;
+use App\Enum\NormalizeMode;
+use App\Exception\NotFound;
 use App\Exception\PaymentFailed;
+use App\Exception\Validation as CustomValidation;
 use App\Helper\GeneralHelper;
 use App\Service\CollectionService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,13 +24,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /*
  * TODO
- * 3- Create validations
- * 3- Try to resolver the most TODO task
- * 4- Create endpoint to process orders
- * 5- Create endpoint to savepayment profile to re-use if exist and create custom profile if do not exist
- * 6- Create endpoint to remove payment profile
- * 7- Create endpoint to update payment profile
- * 8- Create DB with Daymer (Users, Orders, Products by orders)
+ * 2- Create endpoint to delete payment profile
+ * 3- Create table with the country code and save sql
  * */
 
 
@@ -184,16 +184,16 @@ class AuthorizeNetService extends BaseService
         ];
     }
 
-    public function getCustomerProfile(?MerchantAuthenticationType $merchantAuth, string|null $customerProfileId)
+    public function getCustomerProfile(?MerchantAuthenticationType $merchantAuth, string|null $customerProfileId, $mode = NormalizeMode::BASIC)
     {
-
         // Merchant authentication
         $this->merchantAuthentication($merchantAuth);
 
         if (empty($customerProfileId)) {
-            // TODO
-            // get from the user logger
-            // if is empty the customer profile for the user logger, return not found exception
+            $customerProfileId = $this->security->getUser()->getCustomerProfileId();
+            if (empty($customerProfileId)) {
+                throw new NotFound('Not found any customer profile', 404);
+            }
         }
 
         $request = new AnetAPI\GetCustomerProfileRequest();
@@ -207,15 +207,22 @@ class AuthorizeNetService extends BaseService
 
         $profileSelected = $response->getProfile();
 
-        return $profileSelected->jsonSerialize();
+        $response = $profileSelected->jsonSerialize();
+
+        if ($mode === NormalizeMode::BASIC) {
+            return isset($response['paymentProfiles']) ? $response['paymentProfiles'] : [];
+        }
+        return $response;
     }
 
     public function createCustomerProfile(?MerchantAuthenticationType $merchantAuth, array $customerData): ?string
     {
 
-        // TODO check if the user logger has defined customer profile
-        // if is true return that id
-        // else execute this function
+        $customerProfileId = $this->security->getUser()->getCustomerProfileId();
+
+        if (!empty($customerProfileId)) {
+            return $customerProfileId;
+        }
 
         $this->merchantAuthentication($merchantAuth);
 
@@ -240,9 +247,15 @@ class AuthorizeNetService extends BaseService
 
         $this->apiHandlerResponse($response);
 
-        // TODO update user logger with this customer profile
 
-        return $response->getCustomerProfileId();
+        $customerProfileId = $response->getCustomerProfileId();
+
+        $userLogger = $this->security->getUser();
+        $userLogger->setCustomerProfileId($customerProfileId);
+        $this->em->persist($userLogger);
+        $this->em->flush();
+
+        return $customerProfileId;
     }
 
     public function deleteCustomerProfile(?MerchantAuthenticationType $merchantAuth, $customerProfileId): bool
@@ -287,6 +300,13 @@ class AuthorizeNetService extends BaseService
         $this->_validate(new CreateCustomerPaymentProfileValidation(), $paymentData);
 
         $this->merchantAuthentication($merchantAuth);
+
+        $paymentProfiles = $this->getCustomerProfile($merchantAuth, $customerProfileId);
+
+        $maxPaymentAllowed = 3;
+        if (count($paymentProfiles) >= $maxPaymentAllowed) {
+            throw new PaymentFailed("El número máximo de parfiles de pago es " . $maxPaymentAllowed, [], 400);
+        }
 
         // Set credit card information for payment profile
         $creditCard = new AnetAPI\CreditCardType();
@@ -333,6 +353,8 @@ class AuthorizeNetService extends BaseService
 
     public function updateCustomerPaymentProfile(?MerchantAuthenticationType $merchantAuth, $customerProfileId, $customerPaymentProfileId, array $paymentData): bool
     {
+        $this->_validate(new UpdateCustomerPaymentProfileValidation(), $paymentData);
+
         // Merchant authentication
         $this->merchantAuthentication($merchantAuth);
 
@@ -352,6 +374,7 @@ class AuthorizeNetService extends BaseService
         $creditCard = new AnetAPI\CreditCardType();
         $creditCard->setCardNumber($paymentData['cardNumber']);
         $creditCard->setExpirationDate($paymentData["expirationDate"]);
+        $creditCard->setCardCode($paymentData['cvv']);
 
         $paymentCreditCard = new AnetAPI\PaymentType();
         $paymentCreditCard->setCreditCard($creditCard);
@@ -359,7 +382,9 @@ class AuthorizeNetService extends BaseService
         $paymentProfile = new AnetAPI\CustomerPaymentProfileExType();
 
         $billto = $response->getPaymentProfile()->getbillTo();
-        if ($paymentData['billTo']['isUpdated']) {
+        if (isset($paymentData['billTo']['isUpdated']) && $paymentData['billTo']['isUpdated']) {
+            $this->_validate(new CustomerPaymentProfileBillToValidation(), $paymentData);
+
             $billto->setFirstName($paymentData['billTo']['firstName']);
             $billto->setLastName($paymentData['billTo']['lastName']);
             $billto->setAddress($paymentData['billTo']['address']);
@@ -393,6 +418,13 @@ class AuthorizeNetService extends BaseService
     {
         // Merchant authentication
         $this->merchantAuthentication($merchantAuth);
+
+        if (empty($customerProfileId)) {
+            $customerProfileId = $this->security->getUser()->getCustomerProfileId();
+            if (empty($customerProfileId)) {
+                throw new NotFound('Not found any customer profile', 404);
+            }
+        }
 
         $request = new AnetAPI\DeleteCustomerPaymentProfileRequest();
         $request->setMerchantAuthentication($merchantAuth);
