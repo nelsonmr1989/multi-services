@@ -37,3 +37,8 @@ services:
     App\Listener\Doctrine\DoctrineListener:
         tags:
             - { name: 'doctrine.event_listener', event: 'onFlush' }
+
+    App\Listener\JWT\AuthenticationSuccessListener:
+        arguments: [ '@doctrine.orm.default_entity_manager' ]
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_success, method: onAuthenticationSuccessResponse }
