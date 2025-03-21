@@ -3,6 +3,7 @@
 namespace App\Controller\Country;
 
 use App\Controller\BaseController;
+use App\Controller\Sync\SyncService;
 use App\Enum\NormalizeMode;
 use App\Helper\GeneralHelper;
 use App\Service\CollectionService;
@@ -18,12 +19,14 @@ class CountryController extends BaseController
     }
 
     #[Route("/countries/find-all", methods: ["GET"])]
-    public function getAll(CountryService $countryService)
+    public function getAll(CountryService $countryService, SyncService $syncService)
     {
-        $countries = $this->collectionService->collectionToArray(
-            $countryService->getAll()
-        );
+//        $countries = $this->collectionService->collectionToArray(
+//            $countryService->getAll()
+//        );
+//
+//        return parent::_response($countries);
 
-        return parent::_response($countries);
+        return parent::_response($syncService->syncProducts());
     }
 }

@@ -12,15 +12,15 @@ class CreateRecipientValidation extends Base implements IValidator
     public function getValidations()
     {
         $validations = [
-            'name' => [
+            'fullName' => [
+                new Assert\NotBlank(),
+                new Assert\Length(['max' => 255])
+            ],
+            'state' => [
                 new Assert\NotBlank(),
                 new Assert\Length(['max' => 150])
             ],
-            'firstName' => [
-                new Assert\NotBlank(),
-                new Assert\Length(['max' => 150])
-            ],
-            'lastName' => [
+            'city' => [
                 new Assert\NotBlank(),
                 new Assert\Length(['max' => 150])
             ],

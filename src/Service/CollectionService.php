@@ -120,4 +120,23 @@ class CollectionService
         $format = (!empty($format)) ? $format : "Y-m-d";
         return ($date) ? $date->format($format) : null;
     }
+
+    public function getDateFromString($stringDate, $isDateTime = true,  bool $convertToUtc = false, $format = null) {
+        $date = null;
+        if (!empty($stringDate)) {
+            $format = ((!empty($format)) ? $format : $isDateTime) ? 'Y-m-d H:i:s' : 'Y-m-d';
+            try {
+                $date = \DateTime::createFromFormat($format, $stringDate);
+                if(!$isDateTime) {
+                    $date->setTime(00,00,00);
+                }
+                if ($convertToUtc) {
+                    $date->setTimezone(new \DateTimeZone('UTC'));
+                }
+            } catch (\Exception $e) {
+                $date = null;
+            }
+        }
+        return (is_object($date)) ? $date : null;
+    }
 }

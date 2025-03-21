@@ -18,14 +18,8 @@ class Recipient extends Base implements IJsonArray, IGuard
     #[ORM\CustomIdGenerator(class: "doctrine.uuid_generator")]
     private ?string $id = null;
 
-    #[ORM\Column(length: 150)]
-    private ?string $name = null;
-
-    #[ORM\Column(length: 150)]
-    private ?string $firstName = null;
-
-    #[ORM\Column(length: 150)]
-    private ?string $lastName = null;
+    #[ORM\Column(length: 255)]
+    private ?string $fullName = null;
 
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $idCard = null;
@@ -49,45 +43,15 @@ class Recipient extends Base implements IJsonArray, IGuard
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
+    #[ORM\Column(length: 150)]
+    private ?string $state = null;
+
+    #[ORM\Column(length: 150)]
+    private ?string $city = null;
+
     public function getId(): ?string
     {
         return $this->id;
-    }
-
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(string $name): static
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    public function getFirstName(): ?string
-    {
-        return $this->firstName;
-    }
-
-    public function setFirstName(string $firstName): static
-    {
-        $this->firstName = $firstName;
-
-        return $this;
-    }
-
-    public function getLastName(): ?string
-    {
-        return $this->lastName;
-    }
-
-    public function setLastName(string $lastName): static
-    {
-        $this->lastName = $lastName;
-
-        return $this;
     }
 
     public function getIdCard(): ?string
@@ -162,13 +126,29 @@ class Recipient extends Base implements IJsonArray, IGuard
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
+    public function getFullName(): ?string
+    {
+        return $this->fullName;
+    }
+
+    /**
+     * @param string|null $fullName
+     */
+    public function setFullName(?string $fullName): void
+    {
+        $this->fullName = $fullName;
+    }
+
     public function toArray(CollectionService $entity, $mode)
     {
         return [
             'id' => $this->getId(),
-            'name' => $this->getName(),
-            'firstName' => $this->getFirstName(),
-            'lastName' => $this->getLastName(),
+            'fullName' => $this->getFullName(),
+            'state' => $this->getState(),
+            'city' => $this->getCity(),
             'ci' => $this->getIdCard(),
             'email' => $this->getEmail(),
             'phoneNumber' => $this->getPhoneNumber(),
@@ -180,9 +160,9 @@ class Recipient extends Base implements IJsonArray, IGuard
 
     public function fromArray(CollectionService $entity, array $data)
     {
-        $this->setName($data['name']);
-        $this->setFirstName($data['firstName']);
-        $this->setLastName($data['lastName']);
+        $this->setFullName($data['fullName']);
+        $this->setState($data['state']);
+        $this->setCity($data['city']);
         $this->setIdCard($data['ci']);
         $this->setEmail($data['email']);
         $this->setPhoneNumber($data['phoneNumber']);
@@ -206,5 +186,29 @@ class Recipient extends Base implements IJsonArray, IGuard
     public function isOwner(User $user): bool
     {
         return $this->getUser()->isOwner($user);
+    }
+
+    public function getState(): ?string
+    {
+        return $this->state;
+    }
+
+    public function setState(string $state): static
+    {
+        $this->state = $state;
+
+        return $this;
+    }
+
+    public function getCity(): ?string
+    {
+        return $this->city;
+    }
+
+    public function setCity(string $city): static
+    {
+        $this->city = $city;
+
+        return $this;
     }
 }

@@ -21,4 +21,13 @@ class GeneralHelper
     public static function getRequiredText($fielname) {
         return $fielname . ' requerido';
     }
+
+    public static function parseNormalizeMode(string $value, $defaultMode = NormalizeMode::MEDIUM)
+    {
+        if (defined(NormalizeMode::class . '::' . strtoupper($value))) {
+            return constant(NormalizeMode::class . '::' . strtoupper($value));
+        } else {
+            return $defaultMode;
+        }
+    }
 }

@@ -30,8 +30,6 @@ class RecipientService extends BaseService
 
     public function create(array $data): Recipient
     {
-        // TODO: defined the way to send the fields: country, province, state
-
         $this->_validate(new CreateRecipientValidation(), $data);
 
         $obj = new Recipient();
@@ -46,8 +44,6 @@ class RecipientService extends BaseService
     }
 
     public function update(string $id, array $data): Recipient {
-
-        // TODO: defined the way to send the fields: country, province, state
 
         $this->_validate(new CreateRecipientValidation(), $data);
 

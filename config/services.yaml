@@ -9,6 +9,8 @@ parameters:
     authorize_mode: '%env(AUTHORIZE_NET_MODE)%'
     app_name: 'Multi-Services'
     web_url: '%env(WEB_URL)%'
+    product_provider_url: '%env(PRODUCT_PROVIDER_URL)%'
+    batch_size: 50
 
 services:
     # default configuration for services in *this* file
