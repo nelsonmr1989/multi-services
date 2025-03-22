@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Controller\Recipient\Validations;
+namespace App\Validation\Recipient;
 
-use App\Helper\GeneralHelper;
 use App\Interfaces\IValidator;
 use App\Validation\Base;
 use Symfony\Component\Validator\Constraints as Assert;

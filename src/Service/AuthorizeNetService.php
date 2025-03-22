@@ -1,18 +1,17 @@
 <?php
 
-namespace App\Controller\Payment;
+namespace App\Service;
 
 use App\Controller\BaseService;
-use App\Controller\Payment\Validations\CreateCustomerPaymentProfileValidation;
-use App\Controller\Payment\Validations\CreateCustomerProfileValidation;
-use App\Controller\Payment\Validations\CustomerPaymentProfileBillToValidation;
-use App\Controller\Payment\Validations\UpdateCustomerPaymentProfileValidation;
+use App\Validation\Payment\CreateCustomerPaymentProfileValidation;
+use App\Validation\Payment\CreateCustomerProfileValidation;
+use App\Validation\Payment\CustomerPaymentProfileBillToValidation;
+use App\Validation\Payment\UpdateCustomerPaymentProfileValidation;
 use App\Enum\NormalizeMode;
 use App\Exception\NotFound;
 use App\Exception\PaymentFailed;
-use App\Exception\Validation as CustomValidation;
 use App\Helper\GeneralHelper;
-use App\Service\CollectionService;
+use App\Service\Common\CollectionService;
 use Doctrine\ORM\EntityManagerInterface;
 use net\authorize\api\constants\ANetEnvironment;
 use net\authorize\api\contract\v1 as AnetAPI;
@@ -21,12 +20,6 @@ use net\authorize\api\controller as AnetController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-
-/*
- * TODO
- * 2- Create endpoint to delete payment profile
- * 3- Create table with the country code and save sql
- * */
 
 
 class AuthorizeNetService extends BaseService

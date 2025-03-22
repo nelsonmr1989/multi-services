@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Controller\Recipient;
+namespace App\Service;
 
 use App\Controller\BaseService;
-use App\Controller\Recipient\Validations\CreateRecipientValidation;
+use App\Validation\Recipient\CreateRecipientValidation;
 use App\Entity\Recipient;
-use App\Service\CollectionService;
+use App\Service\Common\CollectionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Validator\Validator\ValidatorInterface;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\Payment\Validations;
+namespace App\Validation\Payment;
 
 use App\Helper\GeneralHelper;
 use App\Interfaces\IValidator;

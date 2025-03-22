@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Controller\User;
+namespace App\Controller\Backend;
 
 use App\Controller\BaseController;
 use App\Entity\User;
 use App\Enum\NormalizeMode;
-use App\Service\CollectionService;
+use App\Service\Common\CollectionService;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\UserService;
 
 #[Route("/v1")]
 class UserController extends BaseController

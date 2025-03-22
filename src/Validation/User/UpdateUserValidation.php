@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Controller\User\Validations;
+namespace App\Validation\User;
 
 use App\Interfaces\IValidator;
 use App\Validation\Base;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class CreateUserValidation extends Base implements IValidator
+class UpdateUserValidation extends Base implements IValidator
 {
     public function getValidations()
     {
@@ -26,10 +26,6 @@ class CreateUserValidation extends Base implements IValidator
                 ])
             ],
             'phoneNumber' => [
-                new Assert\NotBlank(),
-                new Assert\Length(['max' => 20])
-            ],
-            'password' => [
                 new Assert\NotBlank(),
                 new Assert\Length(['max' => 20])
             ]

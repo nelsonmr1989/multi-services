@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller\Payment;
+namespace App\Controller\Backend;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

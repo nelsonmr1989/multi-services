@@ -1,16 +1,15 @@
 <?php
 
-namespace App\Controller\User;
+namespace App\Service;
 
 use App\Controller\BaseService;
-use App\Controller\User\Validations\CreateUserValidation;
-use App\Controller\User\Validations\UpdateUserValidation;
+use App\Validation\User\CreateUserValidation;
+use App\Validation\User\UpdateUserValidation;
 use App\Entity\User;
 use App\Entity\UserCode;
 use App\Exception\Validation as CustomValidation;
 use App\Helper\GeneralHelper;
-use App\Service\CollectionService;
-use App\Validation\Helper;
+use App\Service\Common\CollectionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;

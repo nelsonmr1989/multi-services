@@ -1,14 +1,6 @@
 <?php
 
-namespace App\Controller\Payment;
-
-use App\Exception\PaymentFailed;
-use App\Helper\GeneralHelper;
-use net\authorize\api\constants\ANetEnvironment;
-use net\authorize\api\contract\v1 as AnetAPI;
-use net\authorize\api\contract\v1\MerchantAuthenticationType;
-use net\authorize\api\controller as AnetController;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+namespace App\Service;
 
 
 class PaymentService

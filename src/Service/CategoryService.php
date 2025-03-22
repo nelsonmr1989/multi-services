@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Controller\Category;
+namespace App\Service;
 
 use App\Controller\BaseService;
 use App\Controller\Category\Validations\CreateCategoryValidation;
 use App\Entity\Category;
 use App\Entity\Country;
 use App\Exception\Validation;
-use App\Repository\CategoryRepository;
-use App\Service\CollectionService;
+use App\Service\Common\CollectionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Validator\Validator\ValidatorInterface;

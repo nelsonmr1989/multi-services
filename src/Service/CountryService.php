@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Controller\Country;
+namespace App\Service;
 
 use App\Controller\BaseService;
 use App\Entity\Country;
-use App\Service\CollectionService;
+use App\Service\Common\CollectionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Validator\Validator\ValidatorInterface;

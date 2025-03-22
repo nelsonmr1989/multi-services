@@ -2,10 +2,9 @@
 
 namespace App\Listener\JWT;
 
-use App\Entity\Business;
 use App\Entity\User;
 use App\Enum\NormalizeMode;
-use App\Service\CollectionService;
+use App\Service\Common\CollectionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationSuccessEvent;
 

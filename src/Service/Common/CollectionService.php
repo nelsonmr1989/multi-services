@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\Common;
 
 use App\Enum\NormalizeMode;
 use Doctrine\Common\Collections\Collection;
