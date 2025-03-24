@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Service;
 
 
 use App\Entity\Base;
@@ -10,7 +10,7 @@ use App\Exception\NotFound;
 use App\Exception\Validation as CustomValidation;
 use App\Interfaces\IGuard;
 use App\Interfaces\IValidator;
-use App\Service\CollectionService;
+use App\Service\Common\CollectionService;
 use App\Validation\Helper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;

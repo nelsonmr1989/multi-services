@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Controller\BaseService;
 use App\Validation\Recipient\CreateRecipientValidation;
 use App\Entity\Recipient;
 use App\Service\Common\CollectionService;

@@ -2,8 +2,7 @@
 
 namespace App\Service;
 
-use App\Controller\BaseService;
-use App\Controller\Category\Validations\CreateCategoryValidation;
+use App\Validation\Category\CreateCategoryValidation;
 use App\Entity\Category;
 use App\Entity\Country;
 use App\Exception\Validation;

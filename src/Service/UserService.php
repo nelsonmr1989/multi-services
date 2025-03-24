@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Controller\BaseService;
 use App\Validation\User\CreateUserValidation;
 use App\Validation\User\UpdateUserValidation;
 use App\Entity\User;

@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Controller\BaseService;
 use App\Entity\Country;
 use App\Service\Common\CollectionService;
 use Doctrine\ORM\EntityManagerInterface;
