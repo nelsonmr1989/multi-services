@@ -5,7 +5,7 @@ namespace App\Entity;
 use App\Interfaces\IGuard;
 use App\Interfaces\IJsonArray;
 use App\Repository\RecipientRepository;
-use App\Service\CollectionService;
+use App\Service\Common\CollectionService;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 

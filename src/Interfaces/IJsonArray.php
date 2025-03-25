@@ -1,8 +1,7 @@
 <?php
 namespace App\Interfaces;
 
-use App\Enum\NormalizeMode;
-use App\Service\CollectionService;
+use App\Service\Common\CollectionService;
 
 interface IJsonArray
 {

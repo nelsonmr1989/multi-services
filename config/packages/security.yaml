@@ -19,6 +19,20 @@ security:
                 class: App\Entity\User
                 property: phoneNumber
     firewalls:
+        api_token_refresh:
+            pattern: ^/api/token
+            stateless: true
+            provider: app_user_provider
+            refresh_jwt: ~
+        api:
+            pattern: ^/api
+            stateless: true
+            provider: app_user_provider
+            jwt: ~
+            json_login:
+                check_path: /api/login_check
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
         web:
             pattern: ^/
             user_checker: App\Security\UserChecker
@@ -31,25 +45,6 @@ security:
             logout:
                 path: app_logout
                 target: app_login
-        login:
-            pattern: ^/login
-            stateless: true
-            user_checker: App\Security\UserChecker
-            provider: app_user_provider
-            json_login:
-                check_path: /login_check
-                success_handler: lexik_jwt_authentication.handler.authentication_success
-                failure_handler: lexik_jwt_authentication.handler.authentication_failure
-        api_token_refresh:
-            pattern: ^/api/token
-            stateless: true
-            provider: app_user_provider
-            refresh_jwt: ~
-        api:
-            pattern: ^/api
-            stateless: true
-            provider: app_user_provider
-            jwt: ~
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used

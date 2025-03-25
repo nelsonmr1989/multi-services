@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use App\Interfaces\IJsonArray;
 use App\Repository\CountryRepository;
-use App\Service\CollectionService;
+use App\Service\Common\CollectionService;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CountryRepository::class)]

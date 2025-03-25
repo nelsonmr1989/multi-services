@@ -6,7 +6,7 @@ use App\Enum\NormalizeMode;
 use App\Interfaces\IGuard;
 use App\Interfaces\IJsonArray;
 use App\Repository\UserRepository;
-use App\Service\CollectionService;
+use App\Service\Common\CollectionService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
