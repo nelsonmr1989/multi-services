@@ -1,0 +1,8 @@
+flysystem:
+    storages:
+        s3.storage:
+            adapter: 'aws3'
+            options:
+                client: '@Aws\S3\S3Client'
+                bucket: '%env(AWS_S3_BUCKET)%'
+                prefix: '' # Optional, to store files in a specific folder

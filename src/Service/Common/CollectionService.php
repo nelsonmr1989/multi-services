@@ -6,14 +6,17 @@ use App\Enum\NormalizeMode;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Interfaces\IJsonArray;
+use App\Service\MediaService;
 
 class CollectionService
 {
     private $em;
+    private MediaService $mediaService;
 
-    function __construct(EntityManagerInterface $em)
+    function __construct(EntityManagerInterface $em, MediaService $mediaService)
     {
         $this->em = $em;
+        $this->mediaService = $mediaService;
     }
 
 
@@ -44,6 +47,11 @@ class CollectionService
     public function getEntityManager()
     {
         return $this->em;
+    }
+
+    public function getMediaService()
+    {
+        return $this->mediaService;
     }
 
     public function collectionFromArray(

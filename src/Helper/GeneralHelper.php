@@ -30,4 +30,8 @@ class GeneralHelper
             return $defaultMode;
         }
     }
+
+    public static function getFileName($fileExtension): string {
+        return uniqid() . mt_rand(0, 891229) . '.' . $fileExtension;
+    }
 }

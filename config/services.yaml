@@ -11,6 +11,11 @@ parameters:
     web_url: '%env(WEB_URL)%'
     product_provider_url: '%env(PRODUCT_PROVIDER_URL)%'
     batch_size: 50
+    env(AWS_S3_BUCKET): '%env(AWS_S3_BUCKET)%'
+    env(AWS_REGION): '%env(AWS_REGION)%'
+    env(AWS_ACCESS_KEY_ID): '%env(AWS_ACCESS_KEY_ID)%'
+    env(AWS_SECRET_ACCESS_KEY): '%env(AWS_SECRET_ACCESS_KEY)%'
+    business_slug: '%env(BUSINESS_SLUG)%'
 
 services:
     # default configuration for services in *this* file
@@ -44,3 +49,22 @@ services:
         arguments: [ '@doctrine.orm.default_entity_manager' ]
         tags:
             - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_success, method: onAuthenticationSuccessResponse }
+
+    Aws\S3\S3Client:
+       factory: [ 'Aws\S3\S3Client', 'factory' ]
+       arguments:
+          - version: 'latest'
+            region: '%env(AWS_REGION)%'
+            credentials:
+              key: '%env(AWS_ACCESS_KEY_ID)%'
+              secret: '%env(AWS_SECRET_ACCESS_KEY)%'
+
+    League\Flysystem\AwsS3V3\AwsS3V3Adapter:
+        arguments:
+            $client: '@Aws\S3\S3Client'
+            $bucket: '%env(AWS_S3_BUCKET)%'
+
+    League\Flysystem\Filesystem:
+        class: League\Flysystem\Filesystem
+        arguments:
+            $adapter: '@League\Flysystem\AwsS3V3\AwsS3V3Adapter'

@@ -10,4 +10,5 @@ return [
     Symfony\Bundle\TwigBundle\TwigBundle::class => ['all' => true],
     Twig\Extra\TwigExtraBundle\TwigExtraBundle::class => ['all' => true],
     Gesdinet\JWTRefreshTokenBundle\GesdinetJWTRefreshTokenBundle::class => ['all' => true],
+    League\FlysystemBundle\FlysystemBundle::class => ['all' => true],
 ];

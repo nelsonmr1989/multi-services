@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\NormalizeMode;
 use App\Interfaces\IJsonArray;
 use App\Repository\ProductRepository;
 use App\Service\Common\CollectionService;
@@ -100,7 +101,7 @@ class Product extends Base implements IJsonArray
 
     public function toArray(CollectionService $entity, $mode)
     {
-        return [
+        $r =  [
             'id' => $this->getId(),
             'name' => $this->getName(),
             'price' => $this->getPrice(),
@@ -110,6 +111,11 @@ class Product extends Base implements IJsonArray
             'minimumInStock' => $this->getMinimumInStock(),
             'category' => $this->getCategory() instanceof Category ? $this->getCategory()->toArray($entity, $mode) : null,
         ];
+
+        if ($mode == NormalizeMode::MEDIUM) {
+            $r['images'] = $entity->getMediaService()->getImages($this->getId());
+        }
+        return $r;
     }
 
     public function getCategory(): ?Category

@@ -2,8 +2,9 @@
 
 namespace App\Service;
 
+use App\Entity\Media;
 use App\Entity\Product;
-use App\Entity\Category;
+use App\Enum\NormalizeMode;
 use App\Service\Common\CollectionService;
 use App\Validation\Product\CreateProductValidation;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,14 +14,18 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class ProductService extends BaseService
 {
 
+    private MediaService $mediaService;
+
     function __construct(
         EntityManagerInterface $em,
         Security $security,
         ValidatorInterface $validator,
-        CollectionService $collectionService
+        CollectionService $collectionService,
+        MediaService $mediaService
     )
     {
         parent::__construct($em, $security, $validator, $collectionService);
+        $this->mediaService = $mediaService;
     }
 
     public function get($id): Product
@@ -59,8 +64,39 @@ class ProductService extends BaseService
 
     public function delete(string $id): bool
     {
-        // TODO - When implement the save images in the file system, delete the images here
+        $productImages = $this->em->getRepository(Media::class)->findBy([
+            'type' => Media::TYPE_PRODUCT,
+            'relatedEntity' => Product::class,
+            'relatedId' => $id
+        ], ['id' => 'ASC']);
+
+        foreach ($productImages as $media) {
+            $this->mediaService->deleteMedia($media);
+        }
         return parent::_deleteObject($id, Product::class);
+    }
+
+    public function uploadProductsImages($id, array $imagesInfo, $files) {
+        $product = $this->get($id);
+
+        foreach ($imagesInfo as $imageInfo) {
+            $file = $files->get($imageInfo['key']);
+            $this->mediaService->processMedia(
+                @$imageInfo['action'],
+                $file,
+                Media::TYPE_PRODUCT,
+                Product::class,
+                $product->getId(),
+                @$imageInfo['id']
+            );
+        }
+
+        return true;
+    }
+
+    public function getProductImages(Product|string $product) {
+        $productId = $product instanceof Product ? $product->getId() : $product;
+        return $this->mediaService->getImages($productId);
     }
 
 }
