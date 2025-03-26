@@ -35,6 +35,8 @@ class HandlerExceptionListener
 
                 if (isset($validation['messages'])) {
                     $validation = $validation['messages'];
+                } else {
+                    $content = $exception->getMessage();
                 }
                 break;
             case $exception instanceof PaymentFailed:

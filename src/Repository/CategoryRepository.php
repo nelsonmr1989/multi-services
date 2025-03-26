@@ -39,33 +39,4 @@ class CategoryRepository extends BaseRepository
         return $statement->executeQuery()->fetchOne() ? true : false;
 
     }
-
-    public function getCategoriesByOriginIds($ids) {
-        $em = $this->getEntityManager();
-
-        $idsString = implode("','", $ids);
-        $predicates = "c.originId IN ('".$idsString."')";
-
-        return $em->createQueryBuilder()
-            ->select('c')
-            ->from(Category::class, 'c')
-            ->where($predicates)
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function softDeleteByIds($ids) {
-        $connection = $this->getEntityManager()->getConnection();
-
-        $idsString = implode("','", $ids);
-
-        $sql = "
-            UPDATE category c
-            SET c._deleted = NOW()
-            WHERE c.origin_id NOT IN ('".$idsString."')
-        ";
-
-        $statement = $connection->prepare($sql);
-        return $statement->executeQuery()->rowCount();
-    }
 }

@@ -9,7 +9,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
-#[ORM\Index(fields: ["originId"], name: "origin_idx")]
 class Product extends Base implements IJsonArray
 {
     #[ORM\Id]
@@ -17,9 +16,6 @@ class Product extends Base implements IJsonArray
     #[ORM\GeneratedValue(strategy: "CUSTOM")]
     #[ORM\CustomIdGenerator(class: "doctrine.uuid_generator")]
     private ?string $id = null;
-
-    #[ORM\Column(length: 36, nullable: true)]
-    private ?string $originId = null;
 
     #[ORM\Column(length: 255)]
     private ?string $name = null;
@@ -30,31 +26,22 @@ class Product extends Base implements IJsonArray
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?array $images = null;
-
-    #[ORM\Column(type: "datetime", nullable: true)]
-    protected ?\DateTime $originUpdate;
-
     #[ORM\ManyToOne(inversedBy: 'products')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Category $category = null;
+
+    #[ORM\Column]
+    private ?bool $enabled = null;
+
+    #[ORM\Column]
+    private ?float $quantityInStock = null;
+
+    #[ORM\Column]
+    private ?float $minimumInStock = null;
 
     public function getId(): ?string
     {
         return $this->id;
-    }
-
-    public function getOriginId(): ?string
-    {
-        return $this->originId;
-    }
-
-    public function setOriginId(?string $originId): static
-    {
-        $this->originId = $originId;
-
-        return $this;
     }
 
     public function getName(): ?string
@@ -93,31 +80,21 @@ class Product extends Base implements IJsonArray
         return $this;
     }
 
-    public function getImages(): ?array
-    {
-        return $this->images;
-    }
-
-    public function setImages(?array $images): static
-    {
-        $this->images = $images;
-
-        return $this;
-    }
-
     public function fromArray(CollectionService $entity, array $data)
     {
-        $this->setOriginId($data['originId']);
         $this->setName($data['name']);
-        $this->setImages($data['images']);
         $this->setPrice($data['price']);
         $this->setDescription($data['description']);
-        $this->setOriginUpdate($data['originUpdate']);
 
-        if (isset($data['originCategory'])) {
-            $entity->getEntityManager()->getRepository(Category::class)->findOneByOriginId();
-        } else if (isset($data['category']))  {
-            $entity->getEntityManager()->getReference(Category::class, $data['category']);
+        $enabled = isset($data['enabled']) ? $data['enabled'] : true;
+
+        $this->setEnabled($enabled);
+        $this->setQuantityInStock($data['quantityInStock']);
+        $this->setMinimumInStock($data['minimumInStock']);
+
+        if (isset($data['category']))  {
+            $category = $entity->getEntityManager()->getReference(Category::class, $data['category']);
+            $this->setCategory($category);
         }
     }
 
@@ -125,29 +102,14 @@ class Product extends Base implements IJsonArray
     {
         return [
             'id' => $this->getId(),
-            'originId' => $this->getOriginId(),
             'name' => $this->getName(),
-            'images' => $this->getImages(),
             'price' => $this->getPrice(),
             'description' => $this->getDescription(),
-            'originUpdate' => $this->getOriginUpdate()
+            'enabled' => $this->isEnabled(),
+            'quantityInStock' => $this->getQuantityInStock(),
+            'minimumInStock' => $this->getMinimumInStock(),
+            'category' => $this->getCategory() instanceof Category ? $this->getCategory()->toArray($entity, $mode) : null,
         ];
-    }
-
-    /**
-     * @return \DateTime|null
-     */
-    public function getOriginUpdate(): ?\DateTime
-    {
-        return $this->originUpdate;
-    }
-
-    /**
-     * @param \DateTime|null $originUpdate
-     */
-    public function setOriginUpdate(?\DateTime $originUpdate): void
-    {
-        $this->originUpdate = $originUpdate;
     }
 
     public function getCategory(): ?Category
@@ -158,6 +120,42 @@ class Product extends Base implements IJsonArray
     public function setCategory(?Category $category): static
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    public function isEnabled(): ?bool
+    {
+        return $this->enabled;
+    }
+
+    public function setEnabled(bool $enabled): static
+    {
+        $this->enabled = $enabled;
+
+        return $this;
+    }
+
+    public function getQuantityInStock(): ?float
+    {
+        return $this->quantityInStock;
+    }
+
+    public function setQuantityInStock(float $quantityInStock): static
+    {
+        $this->quantityInStock = $quantityInStock;
+
+        return $this;
+    }
+
+    public function getMinimumInStock(): ?float
+    {
+        return $this->minimumInStock;
+    }
+
+    public function setMinimumInStock(float $minimumInStock): static
+    {
+        $this->minimumInStock = $minimumInStock;
 
         return $this;
     }

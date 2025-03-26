@@ -10,10 +10,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
-#[ORM\Index(fields: ["originId"], name: "origin_idx")]
 class Category extends Base implements IJsonArray
 {
-    const CATEGORY_OTHER_ID = '';
 
     #[ORM\Id]
     #[ORM\Column(type: "string", length: 36, unique: true)]
@@ -23,12 +21,6 @@ class Category extends Base implements IJsonArray
 
     #[ORM\Column(length: 180)]
     private ?string $name = null;
-
-    #[ORM\Column(length: 36, nullable: true)]
-    private ?string $originId = null;
-
-    #[ORM\Column(type: "datetime", nullable: true)]
-    protected ?\DateTime $originUpdate;
 
     /**
      * @var Collection<int, Product>
@@ -62,45 +54,13 @@ class Category extends Base implements IJsonArray
     {
         return [
             'id' => $this->getId(),
-            'name' => $this->getName(),
-            'originId' => $this->getOriginId(),
-            'originUpdated' => $this->getOriginUpdate()
+            'name' => $this->getName()
         ];
     }
 
     public function fromArray(CollectionService $entity, array $data)
     {
         $this->setName($data['name']);
-        $this->setOriginId($data['originId']);
-        $this->setOriginUpdate($entity->getDateFromString($data['originUpdated']));
-    }
-
-    public function getOriginId(): ?string
-    {
-        return $this->originId;
-    }
-
-    public function setOriginId(?string $originId): static
-    {
-        $this->originId = $originId;
-
-        return $this;
-    }
-
-    /**
-     * @return \DateTime|null
-     */
-    public function getOriginUpdate(): ?\DateTime
-    {
-        return $this->originUpdate;
-    }
-
-    /**
-     * @param \DateTime|null $originUpdate
-     */
-    public function setOriginUpdate(?\DateTime $originUpdate): void
-    {
-        $this->originUpdate = $originUpdate;
     }
 
     /**

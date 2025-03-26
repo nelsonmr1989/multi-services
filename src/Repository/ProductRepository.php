@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Category;
 use App\Entity\Product;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -16,32 +17,8 @@ class ProductRepository extends BaseRepository
         parent::__construct($registry, Product::class);
     }
 
-    public function getProductsByOriginIds($ids) {
-        $em = $this->getEntityManager();
-
-        $idsString = implode("','", $ids);
-        $predicates = "p.originId IN ('".$idsString."')";
-
-        return $em->createQueryBuilder()
-            ->select('p')
-            ->from(Product::class, 'p')
-            ->where($predicates)
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function softDeleteByIds($ids) {
-        $connection = $this->getEntityManager()->getConnection();
-
-        $idsString = implode("','", $ids);
-
-        $sql = "
-            UPDATE product p
-            SET p._deleted = NOW()
-            WHERE p.origin_id NOT IN ('".$idsString."')
-        ";
-
-        $statement = $connection->prepare($sql);
-        return $statement->executeQuery()->rowCount();
+    function filter(array $filters = [], int $start = 0, int $limit = 10, $orderBy = null)
+    {
+        return parent::_filter(Product::class, $filters, null, $start, $limit, $orderBy);
     }
 }

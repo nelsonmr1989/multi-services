@@ -24,13 +24,9 @@ class CategoryService extends BaseService
         parent::__construct($em, $security, $validator, $collectionService);
     }
 
-    public function get($id): Country
+    public function get($id): Category
     {
         return parent::_getObject($id, Category::class);
-    }
-
-    public function filter($filters, $start = 0, $limit = 10, $orderBy = null) {
-        return $this->em->getRepository(Category::class)->filter($filters, $start, $limit, $orderBy);
     }
 
     public function create(array $data) {
@@ -62,13 +58,16 @@ class CategoryService extends BaseService
             }
         }
 
-        $obj = new Category();
         $obj->fromArray($this->collectionService, $data);
 
         $this->em->persist($obj);
         $this->em->flush();
 
         return $obj;
+    }
+
+    public function list() {
+        return $this->em->getRepository(Category::class)->findBy(['_deleted' => null]);
     }
 
     public function delete(string $id): bool {
